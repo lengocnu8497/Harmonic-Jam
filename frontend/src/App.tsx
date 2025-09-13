@@ -92,7 +92,7 @@ function App() {
                 Add Selection
               </div>
             </div>
-            <AddSelectionModal open={open} handleClose={handleClose} selectedCompanyIds={selectedCompanyIds}/>
+            <AddSelectionModal open={open} handleClose={handleClose} selectedCompanyIds={selectedCompanyIds} collectionResponse={collectionResponse}/>
           </div>
         </div>
       </div>
