@@ -27,3 +27,5 @@ As mentioned above, one big draw back from the bulk import approach is the lack 
 A job model can contains information about job status, total companies to be added, failed/successful additions, time stamps, job id. This allow the client to track failed imports with specific error messages, allowing retries and partial success handling. For list containing with much higher loads, this is even more powerful as the jobs can be queued up, allowing for resource management and throttling. With large dataset, auditability is also a big consideration - the above job model will be able to store and maintain logs of all import activities.
 
 The client then can continously pulling using the job IDs and present a progress bar while displaying the successfully processed companies.
+
+If time allows, for future improvements, I'd like to add proper testings to eliminate the assumptions that the IDs sent over from the client are valid and especially load testing for a list that has more than 10,000 companies. Import job approach with multiple threads implementation is another improvement I'd like to make with ample time for test runs. 
