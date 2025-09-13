@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+import uuid
 
 from backend.db import database
 
@@ -19,6 +20,11 @@ class CompanyOutput(BaseModel):
 class CompanyBatchOutput(BaseModel):
     companies: list[CompanyOutput]
     total: int
+
+
+class DeleteCompanyResponse(BaseModel):
+    message: str
+    success: bool
 
 
 def fetch_companies_with_liked(
@@ -73,4 +79,34 @@ def get_companies(
     return CompanyBatchOutput(
         companies=companies,
         total=count,
+    )
+
+
+@router.delete("/{company_id}/collections/{collection_id}", response_model=DeleteCompanyResponse)
+def delete_company_from_collection(
+    company_id: int,
+    collection_id: uuid.UUID,
+    db: Session = Depends(database.get_db),
+):
+    """Delete a company from a specific collection."""
+
+    # Check if the company is in the collection
+    association = db.query(database.CompanyCollectionAssociation).filter(
+        database.CompanyCollectionAssociation.company_id == company_id,
+        database.CompanyCollectionAssociation.collection_id == collection_id
+    ).first()
+
+    if not association:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Company {company_id} is not in collection {collection_id}"
+        )
+
+    # Delete the association
+    db.delete(association)
+    db.commit()
+
+    return DeleteCompanyResponse(
+        message=f"Successfully removed company {company_id} from collection {collection_id}",
+        success=True
     )

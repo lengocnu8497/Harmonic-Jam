@@ -14,26 +14,9 @@ const darkTheme = createTheme({
   },
 });
 
-const selectedCompanyIds: ICompany[] = [
-  {
-    id: 1,
-    company_name: "Company A",
-    liked: true,
-  },
-  {
-    id: 2,
-    company_name: "Company B",
-    liked: false,
-  },
-  {
-    id: 3,
-    company_name: "Company C",
-    liked: true,
-  },
-];
-
 function App() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>();
+  const [selectedCompanies, setSelectedCompanies] = useState<ICompany[]>([]);
   const { data: collectionResponse } = useApi(() => getCollectionsMetadata());
 
   const [open, setOpen] = useState(false);
@@ -82,7 +65,10 @@ function App() {
           </div>
           <div className="w-4/5 ml-4">
             {selectedCollectionId && (
-              <CompanyTable selectedCollectionId={selectedCollectionId} />
+              <CompanyTable
+                selectedCollectionId={selectedCollectionId}
+                onSelectionChange={setSelectedCompanies}
+              />
             )}
             <div className="flex justify-center mt-6">
               <div
@@ -92,7 +78,14 @@ function App() {
                 Add Selection
               </div>
             </div>
-            <AddSelectionModal open={open} handleClose={handleClose} selectedCompanyIds={selectedCompanyIds} collectionResponse={collectionResponse}/>
+            <AddSelectionModal
+              open={open}
+              handleClose={handleClose}
+              selectedCompanies={selectedCompanies}
+              collectionResponse={collectionResponse?.filter((response) => response.id !== selectedCollectionId)}
+              onSelectionChange={setSelectedCompanies}
+              selectedOriginCollection={selectedCollectionId}
+            />
           </div>
         </div>
       </div>

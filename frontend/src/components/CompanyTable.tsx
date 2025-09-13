@@ -6,13 +6,15 @@ import { getCollectionsById, ICompany } from "../utils/jam-api";
 interface CompanyTableProps {
   selectedCollectionId?: string;
   isModalView?: boolean;
-  selectedCompanyIds?: ICompany[];
+  selectedCompanies?: ICompany[];
+  onSelectionChange?: (companies: ICompany[]) => void;
 }
 
-const CompanyTable = ({ 
+const CompanyTable = ({
   selectedCollectionId,
-  selectedCompanyIds,
+  selectedCompanies,
   isModalView = false,
+  onSelectionChange,
 } : CompanyTableProps) => {
   const [response, setResponse] = useState<ICompany[]>([]);
   const [total, setTotal] = useState<number>();
@@ -37,7 +39,7 @@ const CompanyTable = ({
   return (
     <div style={{ height: 600, width: "100%" }}>
       <DataGrid
-        rows={isModalView ? selectedCompanyIds : response}
+        rows={isModalView ? selectedCompanies : response}
         rowHeight={30}
         columns={[
           { field: "liked", headerName: "Liked", width: 90 },
@@ -52,7 +54,14 @@ const CompanyTable = ({
               <GridActionsCellItem
                 icon={<DeleteIcon />}
                 label="Delete"
-                onClick={() => (console.log(`Delete company with ID: ${params.id}`))}
+                onClick={() => {
+                  if (onSelectionChange && selectedCompanies) {
+                    const updatedCompanies = selectedCompanies.filter(
+                      company => company.id !== params.id
+                    );
+                    onSelectionChange(updatedCompanies);
+                  }
+                }}
               />
             ]
           }] : [])
@@ -62,13 +71,21 @@ const CompanyTable = ({
             paginationModel: { page: 0, pageSize: 25 },
           },
         }}
-        rowCount={total}
+        rowCount={isModalView ? selectedCompanies?.length : total}
         pagination
         checkboxSelection={!isModalView}
-        paginationMode="server"
-        onPaginationModelChange={(newMeta) => {
+        paginationMode={isModalView ? "client" : "server"}
+        onPaginationModelChange={isModalView ? undefined : (newMeta) => {
           setPageSize(newMeta.pageSize);
           setOffset(newMeta.page * newMeta.pageSize);
+        }}
+        onRowSelectionModelChange={(selectionModel) => {
+          if (onSelectionChange && !isModalView) {
+            const selectedRows = response.filter((company) =>
+              selectionModel.includes(company.id)
+            );
+            onSelectionChange(selectedRows);
+          }
         }}
       />
     </div>

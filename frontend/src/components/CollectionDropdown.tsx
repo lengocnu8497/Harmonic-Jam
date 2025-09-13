@@ -1,9 +1,10 @@
-import { useState } from "react";
 import { FormControl, InputLabel, Select, MenuItem, OutlinedInput, SelectChangeEvent } from "@mui/material";
 import { ICollection } from "../utils/jam-api";
 
 interface CollectionDropdownProps {
   collectionResponse: ICollection[] | undefined;
+  selectedCollection: ICollection | undefined;
+  onSelectionChange: (selection: ICollection | undefined) => void;
 }
 
 const ITEM_HEIGHT = 48;
@@ -17,40 +18,38 @@ const MenuProps = {
   },
 };
 
-const CollectionDropdown = ({ collectionResponse }: CollectionDropdownProps) => {
+const CollectionDropdown = ({ collectionResponse, selectedCollection, onSelectionChange }: CollectionDropdownProps) => {
 
-    const [collectionName, setCollectionName] = useState<string[]>([]);
-
-    const handleChange = (event: SelectChangeEvent<typeof collectionName>) => {
+    const handleChange = (event: SelectChangeEvent<string>) => {
         const {
         target: { value },
         } = event;
-        setCollectionName(
-            // On autofill we get a stringified value.
-            typeof value === 'string' ? value.split(',') : value,
+        // Find the ICollection object that matches the selected value
+        const selected = collectionResponse?.find(
+            (collection) => collection.collection_name === value
         );
+        onSelectionChange(selected);
     };
 
     return (
         <FormControl sx={{ m: 1, width: '100%' }}>
             <InputLabel id="demo-multiple-name-label">Collection</InputLabel>
             <Select
-            labelId="demo-multiple-name-label"
-            id="demo-multiple-name"
-            multiple
-            value={collectionName}
-            onChange={handleChange}
-            input={<OutlinedInput label="Collection" />}
-            MenuProps={MenuProps}
-            >
-            {collectionResponse?.map((collection) => (
-                <MenuItem
-                key={collection.id}
-                value={collection.collection_name}
+                labelId="name-label"
+                id="name"
+                value={selectedCollection?.collection_name || ""}
+                onChange={handleChange}
+                input={<OutlinedInput label="Collection" />}
+                MenuProps={MenuProps}
                 >
-                {collection.collection_name}
-                </MenuItem>
-            ))}
+                {collectionResponse?.map((collection) => (
+                    <MenuItem
+                    key={collection.id}
+                    value={collection.collection_name}
+                    >
+                    {collection.collection_name}
+                    </MenuItem>
+                ))}
             </Select>
         </FormControl>
     );
